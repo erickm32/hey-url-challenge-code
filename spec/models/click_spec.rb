@@ -4,16 +4,8 @@ require 'rails_helper'
 
 RSpec.describe Click, type: :model do
   describe 'validations' do
-    it 'validates url_id is valid' do
-      skip 'add test'
-    end
-
-    it 'validates browser is not null' do
-      skip 'add test'
-    end
-
-    it 'validates platform is not null' do
-      skip 'add test'
-    end
+    it { is_expected.to belong_to(:url) }
+    it { is_expected.to validate_presence_of(:browser) }
+    it { is_expected.to validate_presence_of(:platform) }
   end
 end
