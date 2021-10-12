@@ -38,7 +38,7 @@
     <% @urls.each do |url| %>
       <tr>
         <th scope="row"><%= link_to visit_url(url.short_url), visit_url(url.short_url) %> </th>
-        <td> <%= link_to url.original_url %></td>
+        <td> <%= link_to url.original_url, url.original_url %></td>
         <td> <%= url.created_at.strftime('%b %d %Y') %> </td>
         <td><%= url.clicks_count %></td>
         <td>

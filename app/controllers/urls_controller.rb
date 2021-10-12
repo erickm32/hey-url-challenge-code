@@ -24,8 +24,8 @@ class UrlsController < ApplicationController
     if @url.present?
       # this could be on the model, but I think that's ok, for a show page and only three simple queries, yet
       @daily_clicks = daily_clicks
-      @browsers_clicks = Click.group(:browser).count.to_a
-      @platform_clicks = Click.group(:platform).count.to_a
+      @browsers_clicks = @url.clicks.group(:browser).count.to_a
+      @platform_clicks = @url.clicks.group(:platform).count.to_a
     else
       # not a beautiful 404 page, but a 404 page
       render file: "#{Rails.root}/public/404.html", layout: false, status: :not_found
@@ -46,7 +46,7 @@ class UrlsController < ApplicationController
   private
 
   def daily_clicks
-    Click.group('clicks.created_at::date').count.map { |k, v| [k.strftime('%b %d, %Y'), v] }
+    @url.clicks.group('clicks.created_at::date').count.map { |k, v| [k.strftime('%b %d, %Y'), v] }
   end
 
   def generate_short_url
