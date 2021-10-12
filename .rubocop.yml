@@ -9,9 +9,10 @@
 #
 # See https://docs.rubocop.org/rubocop/configuration
 AllCops:
+  NewCops: enable
   Exclude:
     - 'bin/*'
-  NewCops: enable
+    - 'db/**/*'
 
 Style/Documentation:
   Enabled: false

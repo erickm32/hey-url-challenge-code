@@ -9,9 +9,10 @@ require 'webdrivers'
 # Official Guides about System Testing
 # https://api.rubyonrails.org/v5.2/classes/ActionDispatch/SystemTestCase.html
 
+# rubocop:disable Metrics/BlockLength
 RSpec.describe 'Short Urls', type: :system do
   before do
-    driven_by :selenium, using: :headless_chrome
+    driven_by :selenium, using: :chrome
     # If using Firefox
     # driven_by :selenium, using: :firefox
     #
@@ -126,3 +127,4 @@ RSpec.describe 'Short Urls', type: :system do
     end
   end
 end
+# rubocop:enable Metrics/BlockLength
