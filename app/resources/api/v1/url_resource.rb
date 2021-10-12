@@ -27,6 +27,6 @@ class CustomPaginator < JSONAPI::Paginator
   end
 
   def apply(relation, _order_options)
-    relation.order(:created_at).limit(10)
+    relation.order(created_at: :desc).limit(10)
   end
 end

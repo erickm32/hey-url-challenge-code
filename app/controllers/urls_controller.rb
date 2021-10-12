@@ -4,7 +4,7 @@ class UrlsController < ApplicationController
   def index
     # recent 10 short urls
     @url = Url.new
-    @urls = Url.all.take(10)
+    @urls = Url.all.order(created_at: :desc).limit(10)
   end
 
   def create
