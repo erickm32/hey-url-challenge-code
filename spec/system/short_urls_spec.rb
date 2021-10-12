@@ -33,11 +33,26 @@ RSpec.describe 'Short Urls', type: :system do
 
   describe 'show' do
     let(:url) { create(:url) }
+    before do
+      url.clicks << Click.create(url: url, platform: 'linux', browser: 'chrome')
+      url.clicks << Click.create(url: url, platform: 'macOS', browser: 'chrome')
+      url.clicks << Click.create(url: url, platform: 'windows', browser: 'edge')
+    end
     it 'shows a panel of stats for a given short url' do
       visit url_path(url.short_url)
       expect(page).to have_text(url.short_url)
       expect(page).to have_text(url.created_at.strftime('%b %d, %Y'))
       expect(page).to have_text(url.original_url)
+      # not quite tested, for say, but requires some data to be present, at least
+      expect(page).to have_text('total clicks')
+      expect(page).to have_text(Click.last.created_at.strftime('%b %d, %Y'))
+      expect(page).to have_text('Browsers')
+      expect(page).to have_text('chrome')
+      expect(page).to have_text('edge')
+      expect(page).to have_text('Platform')
+      expect(page).to have_text('linux')
+      expect(page).to have_text('macOS')
+      expect(page).to have_text('windows')
     end
 
     context 'when not found' do

@@ -22,6 +22,7 @@ class UrlsController < ApplicationController
     # implement queries
 
     if @url.present?
+      # this could be on the model, but I think that's ok, for a show page and only three simple queries, yet
       @daily_clicks = daily_clicks
       @browsers_clicks = Click.group(:browser).count.to_a
       @platform_clicks = Click.group(:platform).count.to_a
@@ -45,7 +46,7 @@ class UrlsController < ApplicationController
   private
 
   def daily_clicks
-    Click.group('clicks.created_at::date').count.map { |k,v|  [k.strftime('%b %d, %Y'), v] }
+    Click.group('clicks.created_at::date').count.map { |k, v| [k.strftime('%b %d, %Y'), v] }
   end
 
   def generate_short_url
