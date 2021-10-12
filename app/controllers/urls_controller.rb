@@ -4,49 +4,66 @@ class UrlsController < ApplicationController
   def index
     # recent 10 short urls
     @url = Url.new
-    @urls = [
-      Url.new(short_url: 'ABCDE', original_url: 'http://google.com', created_at: Time.now),
-      Url.new(short_url: 'ABCDG', original_url: 'http://facebook.com', created_at: Time.now),
-      Url.new(short_url: 'ABCDF', original_url: 'http://yahoo.com', created_at: Time.now)
-    ]
+    @urls = Url.all.take(10)
   end
 
   def create
-    raise 'add some code'
-    # create a new URL record
+    url = Url.new(new_url_params)
+
+    if url.save
+      redirect_to urls_path, flash: { success: 'Successfully created' }
+    else
+      redirect_to urls_path, flash: { notice: url.errors.full_messages }
+    end
   end
 
   def show
-    @url = Url.new(short_url: 'ABCDE', original_url: 'http://google.com', created_at: Time.now)
+    @url = Url.find_by(short_url: params[:url])
     # implement queries
-    @daily_clicks = [
-      ['1', 13],
-      ['2', 2],
-      ['3', 1],
-      ['4', 7],
-      ['5', 20],
-      ['6', 18],
-      ['7', 10],
-      ['8', 20],
-      ['9', 15],
-      ['10', 5]
-    ]
-    @browsers_clicks = [
-      ['IE', 13],
-      ['Firefox', 22],
-      ['Chrome', 17],
-      ['Safari', 7]
-    ]
-    @platform_clicks = [
-      ['Windows', 13],
-      ['macOS', 22],
-      ['Ubuntu', 17],
-      ['Other', 7]
-    ]
+
+    if @url.present?
+      @daily_clicks = daily_clicks
+      @browsers_clicks = Click.group(:browser).count.to_a
+      @platform_clicks = Click.group(:platform).count.to_a
+    else
+      # not a beautiful 404 page, but a 404 page
+      render file: "#{Rails.root}/public/404.html", layout: false, status: :not_found
+    end
   end
 
   def visit
-    # params[:short_url]
-    render plain: 'redirecting to url...'
+    url = Url.find_by(short_url: params[:short_url])
+    if url.present?
+      update_url_clicks_and_register_new_click(url)
+      redirect_to url.original_url
+    else
+      # not a beautiful 404 page, but a 404 page
+      render file: "#{Rails.root}/public/404.html", layout: false, status: :not_found
+    end
+  end
+
+  private
+
+  def daily_clicks
+    Click.group('clicks.created_at::date').count.map { |k,v|  [k.strftime('%b %d, %Y'), v] }
+  end
+
+  def generate_short_url
+    generated_short_url = helpers.base26
+    generated_short_url = helpers.base26 while Url.where(short_url: generated_short_url).any?
+    generated_short_url
+  end
+
+  def new_url_params
+    url_params.merge({ short_url: generate_short_url })
+  end
+
+  def update_url_clicks_and_register_new_click(url)
+    url.update(clicks_count: url.clicks_count + 1)
+    url.clicks.create(platform: browser.platform.name, browser: browser.name)
+  end
+
+  def url_params
+    params.require(:url).permit(:original_url)
   end
 end

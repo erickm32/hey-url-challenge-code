@@ -11,7 +11,7 @@ require 'webdrivers'
 
 RSpec.describe 'Short Urls', type: :system do
   before do
-    driven_by :selenium, using: :chrome
+    driven_by :selenium, using: :headless_chrome
     # If using Firefox
     # driven_by :selenium, using: :firefox
     #
@@ -22,63 +22,91 @@ RSpec.describe 'Short Urls', type: :system do
   end
 
   describe 'index' do
+    before { create_list(:url, 10) }
+
     it 'shows a list of short urls' do
       visit root_path
       expect(page).to have_text('HeyURL!')
-      # expect page to show 10 urls
+      expect(find('tbody').all('tr').count).to eq(10)
     end
   end
 
   describe 'show' do
+    let(:url) { create(:url) }
     it 'shows a panel of stats for a given short url' do
-      visit url_path('ABCDE')
-      # expect page to show the short url
+      visit url_path(url.short_url)
+      expect(page).to have_text(url.short_url)
+      expect(page).to have_text(url.created_at.strftime('%b %d, %Y'))
+      expect(page).to have_text(url.original_url)
     end
 
     context 'when not found' do
       it 'shows a 404 page' do
         visit url_path('NOTFOUND')
         # expect page to be a 404
+        # is this enough?
+        expect(page.body).to have_text('The page you were looking for doesn\'t exist (404)')
       end
     end
   end
 
   describe 'create' do
     context 'when url is valid' do
+      before do
+        visit root_path
+        fill_in 'url[original_url]', with: 'http://google.com'
+      end
+
       it 'creates the short url' do
-        visit '/'
-        # add more expections
+        expect do
+          click_button 'Shorten URL'
+        end.to change(Url, :count).by(1)
+        expect(Url.last.original_url).to eq('http://google.com')
       end
 
       it 'redirects to the home page' do
-        visit '/'
-        # add more expections
+        click_button 'Shorten URL'
+        expect(page).to have_current_path(urls_path)
       end
     end
 
     context 'when url is invalid' do
+      before do
+        visit root_path
+        fill_in 'url[original_url]', with: 'invalid_url'
+      end
+
       it 'does not create the short url and shows a message' do
-        visit '/'
-        # add more expections
+        expect do
+          click_button 'Shorten URL'
+        end.to change(Url, :count).by(0)
+        expect(Url.count).to eq(0)
+        expect(page).to have_text('Original url is invalid')
       end
 
       it 'redirects to the home page' do
-        visit '/'
+        click_button 'Shorten URL'
+        expect(page).to have_current_path(urls_path)
         # add more expections
       end
     end
   end
 
+  # Wasn't able to actually verify the redirection with this system spec
+  # made a request spec instead
   describe 'visit' do
-    it 'redirects the user to the original url' do
-      visit visit_path('ABCDE')
-      # add more expections
+    let(:url) { create(:url) }
+
+    xit 'redirects the user to the original url' do
+      visit visit_path(url.short_url)
+      expect(page.current_url).to eq(url.original_url)
     end
 
     context 'when not found' do
       it 'shows a 404 page' do
         visit visit_path('NOTFOUND')
         # expect page to be a 404
+        expect(page.body).to have_text('The page you were looking for doesn\'t exist (404)')
       end
     end
   end
